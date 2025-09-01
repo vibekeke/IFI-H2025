@@ -1,0 +1,305 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  line-height: 1.6;
+  background-color: #fff;
+  color: #222;
+  padding-top: 80px; /* space for nav */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+/* Navigation Styles */
+nav {
+  width: 100%;
+  background-color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  padding: 1em 2em 0em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 2em;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 2em;
+}
+
+.nav-links li a {
+  font-weight: bold;
+  font-size: 1.5em;
+  transition: color 0.2s ease;
+}
+
+.nav-links li a:hover {
+  color: #7f77f1; /* placeholder accent */
+}
+
+/* Mobile Nav (hidden on desktop) */
+#hamburger-nav {
+  display: none;
+}
+
+.hamburger-menu {
+  position: relative;
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+  padding: 0.5em;
+}
+
+.hamburger-icon span {
+  height: 3px;
+  width: 25px;
+  background-color: #222;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.hamburger-icon.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(11px);
+}
+.hamburger-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-icon.open span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-11px);
+}
+
+.menu-links {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  padding: 1em;
+
+  /* clean look */
+  background: transparent;
+  border: 0;
+
+  /* fade (no display toggling) */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+  pointer-events: none;
+}
+
+.menu-links.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* no bullets */
+.menu-links ul { 
+  list-style: none; 
+  margin: 0; 
+  padding: 0; 
+}
+
+/* vertical spacing between items */
+.menu-links li + li { 
+  margin-top: 0.25rem; }
+
+/* underline-on-hover like your tabs */
+.menu-links a {
+  position: relative;
+  display: inline-block;
+  padding: 0.4em 0;
+  font-weight: bold;
+  font-size: 1.5em;
+  color: #222;
+  text-decoration: none;
+}
+
+.menu-links a::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 0; height: 2px;
+  background-color: #7f77f1;
+  transition: width 0.3s ease;
+}
+
+.menu-links a:hover::after,
+.menu-links a:focus-visible::after {
+  width: 100%;
+}
+
+
+
+/* Sections */
+section {
+  padding: 4em 2em;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Project Section */
+#projects h1 {
+  text-align: center;
+}
+
+.project-tabs {
+  display: flex;
+  justify-content : center;
+  gap: 2em;
+  margin-top: 1em;
+  margin-bottom: 2em;
+  flex-wrap: wrap;
+}
+
+.project-tabs button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0.8em;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #222;
+  position: relative;
+}
+
+.project-tabs button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background-color: #5f7feb;
+  transition: width 0.2s ease;
+}
+
+.project-tabs button:hover::after,
+.project-tabs button.active::after {
+  width: 100%;
+}
+
+.project-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.project-post {
+  border: 1px solid #ddd;
+  padding: 1em;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.tags {
+  margin-bottom: 0.5em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.tag {
+  font-size: 0.8em;
+  background-color: #dbe7ff;
+  color: rgb(85, 83, 97);
+  padding: 0.2em 0.4em;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.project-image {
+  margin: 1em -1em 1em -1em;
+}
+
+.project-image img {
+  display: block;
+  width: 100%;
+}
+
+.project-links {
+  margin-top: 1em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.project-button {
+  background-color: #7f77f1;
+  color: white;
+  padding: 0.5rem 0.9rem;
+  border-radius: 16px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.project-button:hover {
+  background-color: #27287a;
+  transform: translateY(-2px);
+}
+
+
+/* Back-to-top button*/
+.back-to-top {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1000;
+
+  /* hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+}
+
+.back-to-top img {
+  width: 50px; 
+  height: 50px;
+  display: block;
+  opacity: 0.85;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.back-to-top:hover img {
+  transform: translateY(-3px);
+  opacity: 1;
+}

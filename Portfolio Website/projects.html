@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projects – Vibeke Selnes</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="mediaqueries.css"/>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav id="desktop-nav">
+    <div class="logo">
+        <a href="index.html">Vibeke Ihlen Selnes</a>
+    </div>
+    <div>
+      <ul class="nav-links">
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <nav id="hamburger-nav">
+    <div class="logo">Vibeke Ihlen Selnes</div>
+    <div class="hamburger-menu">
+      <div class="hamburger-icon" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="menu-links">
+        <ul>
+          <li><a href="about.html" onclick="toggleMenu()">About</a></li>
+          <li><a href="projects.html" onclick="toggleMenu()">Projects</a></li>
+          <li><a href="contact.html" onclick="toggleMenu()">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Projects Content -->
+  <section id="projects">
+    <h1>Projects and Work</h1>
+
+    <div class="project-tabs">
+      <button data-category="all" class="active">All</button>
+      <button data-category="games">Games</button>
+      <button data-category="3d">3D Models</button>
+      <button data-category="2d">2D Art</button>
+    </div>
+
+    <div class="project-feed">
+      <div class="project-post games">
+        <h3>Goop Game</h3>
+          <div class="tags">
+            <span class="tag">Unity</span>
+            <span class="tag">C#</span>
+            <span class="tag">Team Project</span>
+            <span class="tag">In progress :D</span>
+        </div>
+        <div class="project-image">
+          <img src="./assets/goops.png" alt="Project screenshot">
+        </div>
+        <p>An ongoing team project inspired by terrariums and pet simulators, made in Unity. 
+        </p>
+          It is still in the early stages, as we are trying to develop robust and scalable systems
+          for our vision. We are very satisfied with out planning efforts and are in the beginning phases of implementation.
+          Very excited to see how the project develops!
+        <p>
+
+        <p>You can read more about this project here</p>
+          
+        </p>
+        <div class="project-links">
+            <a href="https://github.com/vibekeke/goop-game" target="_blank" class="project-button">View on GitHub</a>
+        </div>
+      </div>
+      <div class="project-post games">
+        <h3>Pet the Bubble Game</h3>
+        <div class="tags">
+          <span class="tag">Godot Engine</span>
+          <span class="tag">gdscript</span>
+          <span class="tag">Solo Project</span>
+          <span class="tag">Global Game Jam</span>
+        </div>
+        <div class="project-image">
+          <img src="./assets/boble_illustrasjon.png" alt="Project screenshot">
+        </div>
+        <p>A short game jam for the Global GameJam 2025, with the theme "bubbles"</p>
+        <p>The game was made entirely by me over a single weekend. My goal for this project was to keep things extra simple so that I could finish it despite the limited timeframe.</p>
+        <p>I made a lot of mistakes on this project and learned a lot, and I am quite satisfied with the fact that I was able to finish the game! The game can be played in browser, and although it works on mobile it is intended to be played on desktop.</p>
+        <div class="project-links">
+            <a href="https://bekeblob.itch.io/petbubble" target="_blank" class="project-button">Play on Itch.io</a>
+            <a href="https://github.com/vibekeke/bubblegame" target="_blank" class="project-button">View on GitHub</a>
+        </div>
+      </div>
+      <div class="project-post games">
+        <h3>Magical Girl Game</h3>
+        <div class="tags">
+          <span class="tag">Godot</span>
+          <span class="tag">GdScript</span>
+          <span class="tag">Collaboration</span>
+        </div>
+        <div class="project-image">
+          <img src="./assets/temp_screen.png" alt="Project screenshot">
+        </div>
+        <p>A cute magical girl game project made by me and Tyler McAllister in Godot. 
+        </p>
+        <p>My main contribution to this project was the art and animations, and shared responsibility for game design and project planning. Tyler was in charge of
+          the programming and implementation. As this project first began before I had learnt how to code for myself, it was an excellent entry point for me to
+          learn to think in terms of system design and user experience.     
+        </p>
+        <p>The goal of this project was simply to explore and have fun. It is currently shelved for now, but we have made a playable demo you can play in browser!</p>
+        
+        <div class="project-links">
+            <a href="https://bekeblob.itch.io/the-colors-of-grandmas-forest" target="_blank" class="project-button">Play on Itch.io</a>
+            <a href="https://github.com/zonateduck/pygame-gamejam" target="_blank" class="project-button">View on GitHub</a>
+        </div>
+      </div>
+      <div class="project-post games">
+        <h3>The Colors of Grandma's forest</h3>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">PyGame</span>
+          <span class="tag">Team Project</span>
+        </div>
+        <div class="project-image">
+          <img src="./assets/Grandmas Forest.png" alt="Project screenshot">
+        </div>
+        <p>A short RPG made for the IFI-Gamejam 2025. The game was made over a single weekend, in a team of 6 students. My main contribution to the game was the scene switching logic, as well as general integration of different game parts.</p>
+        <p>The topic of the Game Jam was "Fairytale." We decided to make a story based adventure about the young girl, Iris, who helps her sweet grandma find her lost belongings. But, as so often happens in fairytales, doom looms over the land. Colors are disappearing from the world, and Grandma is behaving suspiciously. Iris must embark on a journey across the forest and Grandma's garden to save both the world and her beloved granny.</p>
+        <p>The game is made entirely in PyGame, and the visuals were made in libresprite. The game requires Python and the pyGame library to play.</p>
+        <div class="project-links">
+            <a href="https://bekeblob.itch.io/the-colors-of-grandmas-forest" target="_blank" class="project-button">Download on Itch.io</a>
+            <a href="https://github.com/zonateduck/pygame-gamejam" target="_blank" class="project-button">View on GitHub</a>
+        </div>
+      </div>
+
+      <div class="project-post games">
+        <h3>Abatha</h3>
+        <div class="project-image">
+          <img src="./assets/øyskisse2_cropped.jpg" alt="Project screenshot">
+        </div>
+        <p>Description here.</p>
+      </div>
+      <div class="project-post games">
+        <h3>Dog Simulation Game</h3>
+        <p>Description here.</p>
+      </div>
+      <div class="project-post 3d">
+        <h3>3D Sculpt</h3>
+        <p>Description here.</p>
+      </div>
+      <div class="project-post 2d">
+        <h3>Illustration</h3>
+        <p>Description here.</p>
+      </div>
+    </div>
+  </section>
+
+  <a href="#top" class="back-to-top" aria-label="Back to top">
+  <img src="./assets/arrow.png" alt="Back to top">
+  </a>
+
+  <script src="script.js"></script>
+</body>
+</html>

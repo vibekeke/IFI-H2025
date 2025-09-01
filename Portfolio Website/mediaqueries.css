@@ -1,0 +1,11 @@
+/*@media overrides or adds to the css when certain conditions are met.*/
+/*Here - When the screen size is less than 1200px, the desktop-nav will be displayed and the hamburger menu will show up instead*/
+@media screen and (max-width: 1200px) {
+    #desktop-nav {
+        display: none;
+    }
+
+    #hamburger-nav {
+        display: flex; /*default is 'display: none' in the style.css file*/
+    }
+}

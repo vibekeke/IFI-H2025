@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact – Vibeke Selnes</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="mediaqueries.css"/>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav id="desktop-nav">
+    <div class="logo">
+        <a href="index.html">Vibeke Ihlen Selnes</a>
+    </div>
+    <div>
+      <ul class="nav-links">
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <nav id="hamburger-nav">
+    <div class="logo">Vibeke Ihlen Selnes</div>
+    <div class="hamburger-menu">
+      <div class="hamburger-icon" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="menu-links">
+        <ul>
+          <li><a href="about.html" onclick="toggleMenu()">About</a></li>
+          <li><a href="projects.html" onclick="toggleMenu()">Projects</a></li>
+          <li><a href="contact.html" onclick="toggleMenu()">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contact Content -->
+  <section id="contact">
+    <h2>Contact Me</h2>
+    <p>Email: <a href="mailto:your@email.com">your@email.com</a></p>
+    <p>Socials: [Twitter / Itch.io / Instagram]</p>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
