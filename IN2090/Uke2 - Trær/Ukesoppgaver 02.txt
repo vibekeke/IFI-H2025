@@ -1,0 +1,105 @@
+
+
+
+---- TRAVERSERING AV TRÆR ----
+
+c) Skriv om visitPreorder(v) slik at den ikke benytter seg av rekursjon
+
+proc visitPreorder(root)    //uten rekursjon
+    if root = null then
+        return
+
+    stack <-- stack containing root
+
+    while stack is not empty do
+        current = stack.pop()
+        visit current
+
+        if current.right is not null
+            stack.push(current.right)
+
+        if current.left is not null   
+            stack.push(current.left)
+
+
+(d) Skriv om visitPostorder slik at den ikke benytter rekursjon.
+
+proc visitPostorder(root)   //uten rekursjon
+    if root = null then
+        return
+    
+    stack <-- stack containing root
+    postOrderStack <-- empty stack
+
+    while stack is not empty do
+        v = stack.pop()
+        postOrderStack.push(v)
+
+        if v.left is not null:
+            stack.push(v.left)
+        
+        if v.right is not null:
+            stack.push(v.right)
+    
+    while postOrderStack is not empty do
+        v = postOrderStack.pop()
+        visit v
+
+
+//Slurvefeil: Blandet mellom å bruke v og current som variabelnavn
+//LF: Kalte den andre stacken 'result' isteden.
+
+
+
+
+(e) Skriv om visitInorder slik at den ikke benytter rekursjon
+
+proc visitInorder(root)
+    if root = null then
+        return
+    
+    middle <-- root
+
+    stack <-- stack containing root
+    result <-- empty stack
+
+    
+
+(f)
+proc visitInorder(root)
+    if root = null then
+        return
+
+    passed <-- empty set
+    stack <-- stack containing root
+
+    while stack != empty do
+        v <-- stack.pop()
+
+        if v is not in passed then
+            stack.push(v)
+            if v.left != null then
+                stack.push(v.left)
+            add v to passed
+        else
+            if v.right != null then
+                stack.push(v.right)
+            visit v
+
+
+Alternativ løsning
+proc visitInorder(node)
+    if node = null then
+        return
+    
+    stack <-- empty stack
+
+    while stack != empty or node != null
+        if node != null then
+            stack.push(node)
+            node <-- node.left
+        else
+            node <-- stack.pop()
+            visit node
+            node <-- node.right
+        
