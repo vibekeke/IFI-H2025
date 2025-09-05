@@ -1,0 +1,93 @@
+
+
+
+
+BINÆRE TRÆR
+
+(a) Ved sletting i binære søketrær trenger vi en prosedyre som finner
+det minste elementet fra en gitt posisjon i treet.
+Gi en algoritme som finner den minste
+
+
+proc FinnMinste(v):
+    if v is null then       //Safety in case null is passed into the function
+        return null     
+
+    if v.left is null then
+        return v
+    
+    return FinnMinste(v.left)
+
+
+(b) Hva er kjøretidskompleksiteten for et ubalansert binært tre?
+I verste tilfelle er det O(n) der n er antall noder i treet.
+Ellers er det høyden til den høyeste noden.
+
+
+(c) Hva er kjøretidskompleksiteten for et balansert binært søketre?
+O(h) der O er høyden til treet. 
+
+
+
+FORMELTRÆR
+
+(a) gi en algoritme treeToString(v) som tar roten til et formeltre, 
+og returnerer det aritmetiske uttrykket med parenteser rundt hvert sammensatte
+deltre.
+
+proc treeToString(v):
+    if v.left = null and v.right = null
+        return v.symbol     //alltid et tall
+    
+    return "(" ++ treeToString(v.left) ++ v.symbol ++ treeToString(v.right) ++ ")"
+
+(b) Gi en algoritme evaluateFormulaTree(v) som tar roten til et formeltre, 
+evaluerer det aritmatiske uttrykket, og returnerer resultatet.
+Du kan anta et gyldig uttrykk uten feil.
+
+proc evaluateFormulaTree(v):
+    if v.left = null and v.right = null then  //alltid et tall.
+        value <-- parse v.symbol to float
+        return value     
+    
+    //Hvis vi har kommet hit, vet vi at vi har et uttrykk.
+    
+    if v.symbol = "+" then
+        return evaluateFormulaTree(v.left) + evaluateFormulaTree(v.right)
+    if v.symbol = "*" then
+        return evaluateFormulaTree(v.left) * evaluateFormulaTree(v.right)
+    if v.symbol = "-" then
+        return evaluateFormulaTree(v.left) - evaluateFormulaTree(v.right)
+    if v.symbol = "/" then
+        return evaluateFormulaTree(v.left) / evaluateFormulaTree(v.right)
+    
+
+ALTERNATIVT: hvis du ikke ønsker så lang return statement kan du gjøre:
+proc evaluateFormulaTree(v)
+    if v.left = null and v.right = null then
+        value <-- parse v.symbol to integer
+        return value
+    
+    left <-- evaluateFormulaTree(v.left)    //Blir cleanere return statement
+    right <-- evaluateFormulaTree(v.right)  
+    
+    if v.symbol = '+' then 
+        return left + right 
+    
+    else if v.symbol = '-' then 
+        return left - right 
+        
+    else if v.symbol = '*' then 
+        return left * right 
+        
+    else if v.symbol = '/' then 
+        return left / right 
+
+
+
+(c) Kjøretidskompleksiteten i stor O-notasjon
+treeToString: O(n) der n er antall noder, fordi alle nodene må evalueres.
+evaluateFormulaTree: O(n) der n er antall noder, fordi alle nodene må evalueres.
+
+Altså lineær kjøretid :DDD
+
