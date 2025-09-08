@@ -11,96 +11,111 @@ class AVL:
     def __init__(self):
         self.root = None
 
-    def height(self, node):                                     # Fra slide 2
-        if node == None:
+    def height(self, node):
+        if node is None:
             return -1
         else:
             return node.height
 
-    def SetHeight(self, node):
+    def setHeight(self, node):
         if node != None:
-            node.height = 1 + max(self.height(node.left), self.height(node.right)) 
+            node.height = 1 + max(self.height(node.left), self.height(node.right))
 
-
-    def getBalanceFactor(self, v):                              # Fra slides 8
-        if v == None:
+    def getBalanceFactor(self, v):
+        if v = null:
             return 0
-        return self.height(v.left) - self.height(v.right)
+        #Take the left childs height and the right sides height, and compare
+        #Positive number if left is bigger, negative if right is bigger. 
+        return self.height(v.left), - self.height(v.right)
 
-    def leftRotate(self, z):                                    # Fra slides 4
+    def leftRotate(self, z):
+        #We want reparent z by making z a child of its right child y.
+
+        #Step 1: Name some nodes, because we only know of z so far
         y = z.right
         T1 = y.left
-        
+
+        #Step 2: Rotate
         y.left = z
         z.right = T1
 
-        self.SetHeight(z)
-        self.SetHeight(y)
+        #Step 3: Set new heights
+        #MERK rekkefølgen betyr noe her, siden høyde avhenger av hverandre
+        self.setHeight(y.left) #z
+        self.setHeight(y)
 
-        return y
+        return y #To set as the root node
 
-    def rightRotate(self, z):                                   # Fra slides 5
+
+    def rightRotate(self, z):
         y = z.left
         T2 = y.right
-        
+
         y.right = z
         z.left = T2
-
-        self.SetHeight(z)
-        self.SetHeight(y)
+        
+        self.setHeight(y.right) #z
+        self.setHeight(y)
 
         return y
 
-    def balanceTree(self, v):                                   # Fra slides 9
+    def balanceTree(self, v):
+        balanceFactor = v.getBalanceFactor
 
-        if self.getBalanceFactor(v) < -1:
-            if self.getBalanceFactor(v.right) > 0:
-                v.right = self.rightRotate(v.right)
-            return self.leftRotate(v)
+        if balanceFactor == 0:
+            return
+        if balanceFactor > 0:   #Treet lener mot venstre
+            v = self.balanceTree(v.left)
+        elif balanceFactor < 0:
+            v = self.balanceTree(v.right)
         
-        if self.getBalanceFactor(v) > 1:
-            if self.getBalanceFactor(v.left) < 0:
-                v.left = self.leftRotate(v.left)
-            return self.rightRotate(v)
-        
-        return v
 
-    def insert(self, v, x):                                 # Fra slide 10
-        if v == None:
+
+    def insert(self, v, x):
+        #Først helt standard innsetting
+        if v = null:
             v = Node(x)
-        elif x < v.key:
+        elif x < v.element:
             v.left = self.insert(v.left, x)
-        elif x > v.key:
+        elif x > v.element:
             v.right = self.insert(v.right, x)
-        self.SetHeight(v)
-        return self.balanceTree(v)
-
+        #Deretter balansering
+        self.setHeight(v)
+        return self.balanceTree(v) #Kan ende opp med ny rot, derfor returnerer vi
 
 
     def remove(self, v, x):
-        if v == None:
+        #Først helt standard fjerning
+        if v is None:
             return None
-        if x < v.key:
-            v.left = self.remove(v.left,x)
-        elif x > v.key:
-            v.right = self.remove(v.right,x)
-        elif v.left == None:
+        
+        #Step 0: Searching for the correct node to delete.
+        if x < v.element:
+            v.left = self.remove(v.left, element)
+            #no return statement cause we don't know what to parent yet
+        elif x > v.element:
+            v.right = self.remove(v.right, element)
+        #If we got to this elif, that means x == v.element, and this node is what we wanna delete
+        #Scenario 1:
+        elif v.left is None:
             v = v.right
-        elif v.right == None:
+        elif v.right is None:
             v = v.left
-        else:
-            u = self.findMin(v.right)  
-            v.key = u.key
-            v.right = self.remove(v.right, u.key)
-        self.SetHeight(v)
+        else:   #Scenario 2, aka. 2 children
+            u = findMin(v.right)
+            v.element = u.element
+            self.remove(v.right, u.element)
+        self.setHeight(v)
+        return self.balanceTree(v) 
+
+
+
+
+
+        #Deretter balansering
+        self.setHeight(v)
         return self.balanceTree(v)
 
     def findMin(self, node):
-        if node == None:
-            return None
-        
-        if node.left != None:
-            return self.findMin(node.left)
-        
-        return node
-        
+
+
