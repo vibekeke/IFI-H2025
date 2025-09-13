@@ -91,10 +91,10 @@ class AVL:
         
         #Step 0: Searching for the correct node to delete.
         if x < v.element:
-            v.left = self.remove(v.left, element)
+            v.left = self.remove(v.left, x)
             #no return statement cause we don't know what to parent yet
         elif x > v.element:
-            v.right = self.remove(v.right, element)
+            v.right = self.remove(v.right, x)
         #If we got to this elif, that means x == v.element, and this node is what we wanna delete
         #Scenario 1:
         elif v.left is None:
@@ -102,20 +102,21 @@ class AVL:
         elif v.right is None:
             v = v.left
         else:   #Scenario 2, aka. 2 children
-            u = findMin(v.right)
+            u = self.findMin(v.right)
             v.element = u.element
-            self.remove(v.right, u.element)
-        self.setHeight(v)
-        return self.balanceTree(v) 
-
-
-
-
+            v.right = self.remove(v.right, u.element)
+        
+        #Sjekk om subtreet nå er tomt:
+        if v is None:
+            return None
 
         #Deretter balansering
         self.setHeight(v)
         return self.balanceTree(v)
 
     def findMin(self, node):
+        if node.left = None:
+            return node
+        return self.findMin(node.left)
 
 

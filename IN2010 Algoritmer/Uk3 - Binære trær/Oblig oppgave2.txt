@@ -1,0 +1,52 @@
+Algorithm: Balansert array til Searchtree-input
+
+input : sortert Array A
+output: Array B med elementene i en rekkefølge, 
+slik at hvis de blir plassert i et binært soketre 
+i den rekkefølgen så resulterer dette i et balansert søketre 
+
+Procedure: Balanser(A) 
+
+if |A| == 0 then
+    return []
+
+middle <- |A|/2
+root <- A[middle]
+
+left <- Balanser(A[0 to middle])
+right <- Balanser(A[middle + 1 to |A|])
+
+return [root] + right + left 
+
+
+
+
+Først må jeg forstå hele oppgaven:
+Et balansert søketre er ett hvor forskjellen mellom den korteste
+og den lengste stien i fra roten til en løvnode er 0 eller 1
+
+Vi skal ikke implementere et binært tre,
+men printe ut elementene du får som inputi en slik rekkefølge slik at vi 
+garanterer at vi får et balansert tredersom vi legger
+elementene inn i et binærtre ved vanlig innsetting.
+
+Det binære søketreet er altså IKKE selv-balanserene.
+
+Input består av heltall i sortert rekkefølge, der ingen
+tall forekommer to ganger.
+
+
+
+Så den tar inn en prioritetskø
+
+Og så skal den poppe det minste elementet (fordi det er det eneste som er lov)
+Og putte det lengst til venstre.
+
+
+input: Prioritetskø 
+output: Array, sortert for balansert innsetting i et binært tre
+
+
+
+
+
