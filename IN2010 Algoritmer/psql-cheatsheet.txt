@@ -1,0 +1,47 @@
+Fra guiden til UiO
+• \q – logger ut fra PostgreSQL
+• \h – hjelp om SQL
+• \? – hjelp om postgreskommandoer
+• \d – lister opp tabeller (relasjoner)
+• \d <tabell> – lister opp kolonner og skranker for tabellen <tabell>
+• \i <filnavn> – leser fila <filnavn> som input
+• \e – åpner en teksteditor (f.eks. Vim eller Emacs) som man så kan skrive SQL
+i og som blir kjørt når man så lagrer og går ut av editoren
+
+
+
+
+-- Connection info
+\conninfo              -- Show current connection (db, user, host)
+\q                     -- Quit psql
+
+-- Databases
+\l                     -- List all databases
+\c dbname              -- Connect to another database
+-- Schemas
+\dn                    -- List schemas
+SHOW search_path;      -- Show schema search order
+SET search_path TO myschema, public;   -- Change search path
+
+-- Tables
+\dt                    -- List tables in search_path
+\dt *.*                -- List ALL tables in all schemas
+\dt myschema.*         -- List tables in a specific schema
+
+-- Table details
+\d tablename           -- Show table structure
+\d+ tablename          -- More details (storage, size, etc.)
+
+-- Query output control
+\pset pager off        -- Disable paging (no "hit enter a million times")
+\pset pager on         -- Re-enable paging
+\x                     -- Toggle expanded display (rows shown vertically)
+
+-- Pager (when output is too long and you see a ":" at the bottom)
+  q   = quit pager, return to psql
+  space = next page
+  ↑ / ↓ = scroll line by line
+  g   = top
+  G   = end
+
+
