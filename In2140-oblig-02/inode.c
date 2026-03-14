@@ -42,10 +42,108 @@ void save_inodes( const char* master_file_table, struct inode* root )
     return;
 }
 
+//Antar korrekt input i binærfilen, sløyfer derfor null-checks
+//da jeg antar det er utenfor skopet til oppgaven.
 struct inode* load_inodes( const char* master_file_table )
 {
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
-    return NULL;
+    FILE *f = fopen(master_file_table, "rb")
+
+    //lager en dynamisk array av pekere til pekere til inoder
+    //Merk at disse først initialiseres med binær-data som entries, 
+    //for så å erstattes med pekere etter alle nodene er lest inn
+    struct inode** inodes = NULL;
+    size_t inodes_size = 0;
+    size_t inodes_cap = 0;  //array kapasitet i minnet
+
+    struct inode* root = NULL;
+    //note to self: one uint32_t has the size of 4 bytes.
+    uint32_t id;
+
+    //bryter ut av løkken hvis forsøk på å lese ID feiler (slutten på filen)
+    while (fread(&id, sizeof(uint32_t), 1, f) == 1)
+    {
+        struct inode *current = malloc(sizeof(struct inode));
+
+        current->id = id;
+
+        //note to self: husk å bruke & når du skal lagre addresser i variabelen.
+        //Hvis variabelen allerede er en peker, trenger du ikke & 
+        uint32_t name_length;   //lengden i seg selv skal ikke lagres
+        fread(&name_length, sizeof(uint32_t), 1, f);
+
+        current->name = malloc(name_length);
+        
+        fread(current->name, name_length, 1, f)
+        fread(&current->is_directory, sizeof(char), 1, f);
+        fread(&current->is_readonly, sizeof(char), 1, f);
+
+        if (current->is_directory) {
+            current->filesize = 0;
+
+            fread(&current->num_entries, sizeof(uint32_t), 1, f);
+            
+            //Merk: lagrer entries som bits foreløpig - erstattes med pekere til barn
+            //i det ferdige filsystemet.
+            current->entries = malloc(current->num_entries * sizeof(uintptr_t))
+            for (uint32_t i = 0; i < current->num_entries; i++) {
+                //ref: på disk er entries serialisert som en sekvens av 64-biters felt, 
+                //som inneholder ID-ene til ulike inodes
+                uint64_t child_id;  
+                fread(&child_id, sizeof(uint64_t), 1, f);
+        
+                current->entries[i] = (uintptr_t)child_id;
+            }
+        } else {
+            fread(&current->filesize, sizeof(uint32_t), 1, f);
+
+            fread(&current->num_entries, sizeof(uint32_t), 1, f);
+
+            int entries_size = 2 * current->num_entries * sizeof(unint32_t);            
+            current->entries = malloc(entries_size);
+            fread(current->entries, entries_size, 1, f);
+        }
+
+        //legger til den nye inoden i arrayet inodes.
+        if (inodes_size == inodes_cap) {
+            size_t new_cap = inodes_cap * 2;    //Dobler kapasiteten til arrayet når arrayet er fullt
+            inodes = realloc(inodes, inodes_cap * sizof(struct inode));
+        }
+
+        inodes[inodes_count++] = current;
+    }
+
+    fclose(f);
+
+    //identifisere rotnoden, i tilfelle den ikke leses inn først i binærfilen
+    for (int i = 0; i < inodes_count; i++) {
+        if (inodes[i]-> id == 0) {
+            root = inodes[i];
+            break;
+        }
+    }
+
+    //Itererer gjennom alle inoder så langt
+    for (int i = 0; i < inodes_count; i++) {
+        struct inode* node = inodes[i];
+
+        //Hvis noden er en dir, iterer gjennom alle entries (barn), og erstatt med pekere til de faktiske barna.
+        if (node->is_directory) {
+            for (uint32_t j = 0; j < node.num_entries, j++) {
+                struct inode child = NULL;
+                uint64_t child_id = node->entires[j]
+
+                //Iterer gjennom alle barna for å finne ID som matcher...
+                for (int k = 0; k < inodes_count; k++) {
+                    if (inodes[k]-> id == child_id) {
+                        child = inodes[k];
+                        break;
+                    }
+                }
+                node->entries[j] = (uintptr_t)child;
+            }
+        }
+    }
+    return root;
 }
 
 void fs_shutdown( struct inode* inode )
@@ -116,4 +214,3 @@ static void debug_fs_print_table( const char* table )
     }
     printf("\n\n");
 }
-
