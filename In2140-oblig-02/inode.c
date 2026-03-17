@@ -12,10 +12,12 @@ static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, m
 
 struct inode* create_file( struct inode* parent, const char* name, char readonly, int size_in_bytes )
 {
+    /*
     if (!parent->is_directory) {
         return NULL;
     }
 
+    
     struct inode* new = malloc(sizeof(struct inode));
 
     new->id = ++max_id;
@@ -28,6 +30,7 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
     //Forsøker å opprette entries
 
     //Oppretter foreldre-forhold
+    */
 
     fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
     return NULL;
@@ -35,8 +38,34 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
 
 struct inode* create_dir( struct inode* parent, const char* name )
 {
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
-    return NULL;
+    if (!parent->is_directory) {
+        return NULL;
+    }
+
+    //Sjekker om mappe med samme navn finnes fra før
+    for (uint32_t i = 0; i < parent->num_entries; i++) {
+        struct inode* child = (struct inode*)parent->entries[i];
+        if (strcmp(child->name, name) == 0) {
+            return NULL;
+        }
+    }
+
+    struct inode* new = malloc(sizeof(struct inode))
+    ;
+    new->id = ++max_id;
+    new->name = malloc(strlen(name) + 1);
+    strcpy(new->name, name);
+    new->is_directory = 1;
+    new->is_readonly = 0;
+    new->filesize = 0;
+    new->num_entries = 0;
+    new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
+
+    parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+    parent->entries[parent->num_entries] = (uintptr_t)new;
+    parent->num_entries ++;
+
+    return new;
 }
 
 struct inode* find_inode_by_name( struct inode* parent, const char* name )
@@ -148,6 +177,11 @@ struct inode* load_inodes( const char* master_file_table )
 
         current->id = id;
 
+        //Oppdaterer global id
+        if current->id > max_id {
+            max_id = current->id;
+        }
+
         //note to self: husk å bruke & i fwrite fordi fwrite kreveren addresse, ikke en verdi.
         //Hvis variabelen allerede er en peker, som name, trenger du ikke &.
         uint32_t name_length;   //lengden i seg selv skal ikke lagres
@@ -198,11 +232,6 @@ struct inode* load_inodes( const char* master_file_table )
             inodes = realloc(inodes, inodes_cap * sizeof(struct inode*));
         }
         inodes[inodes_size++] = current;
-
-        //Oppdaterer den største sette id-en
-        if node->id > max_id {
-            max_id = node->id;
-        }
     }
 
     fclose(file);
