@@ -12,28 +12,79 @@ static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, m
 
 struct inode* create_file( struct inode* parent, const char* name, char readonly, int size_in_bytes )
 {
-    /*
+
     if (!parent->is_directory) {
         return NULL;
     }
 
+    if (find_inode_by_name(parent, name) != NULL) {
+        return NULL;
+    }
     
     struct inode* new = malloc(sizeof(struct inode));
 
     new->id = ++max_id;
     new->name = malloc(strlen(name) + 1);
-    strcopy(new->name, name);
+    strcpy(new->name, name);
     new->is_directory = 0;
-    new->is_readonly = 0;
+    new->is_readonly = readonly;
     new->filesize = (uint32_t)size_in_bytes;
+    new->num_entries = 0;
+    new->entries = NULL;
     
     //Forsøker å opprette entries
 
-    //Oppretter foreldre-forhold
-    */
+    //Trenger å allokere nok blokker til å dekke hele størrelsen / 4096
+    int blocks_to_allocate = (size_in_bytes + 4096 - 1) / 4096;
 
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
-    return NULL;
+    struct Extent* extents = NULL;
+
+    uint32_t index = 0;
+
+    while (blocks_to_allocate > 0) {
+        int attempted_blocks = 4;
+        int success = 0;
+        
+        if (blocks_to_allocate < 4) {
+            attempted_blocks = blocks_to_allocate;
+        }
+
+        while (attempted_blocks > 0) {
+            int new_block = allocate_blocks(attempted_blocks);
+            if (new_block != -1) {
+                extents = realloc(extents, (index + 1) * sizeof(struct Extent));
+                extents[index].blockno = new_block;
+                extents[index].extent = attempted_blocks;
+                index++;
+                blocks_to_allocate -= attempted_blocks;
+                success = 1;
+                break;
+            } else {
+                attempted_blocks -= 1;
+                continue;
+            }
+        }
+        
+        //Hvis vi kom så langt uten å allokere alle blokkene
+        //betyr det at det ikke var nok plass
+        //på disk til å lagre filen. Vi må da frigjøre alle ressurser.
+        if (success != 1) {
+            free(extents);
+            free(new->name);
+            free(new);
+            return NULL;
+        }
+    }
+    
+    new->num_entries = index;
+    new->entries = (uintptr_t*)extents;
+
+    //Oppretter foreldre-forhold
+    parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+    parent->entries[parent->num_entries] = (uintptr_t)new;
+    parent->num_entries++;
+
+    return new;
 }
 
 struct inode* create_dir( struct inode* parent, const char* name )
@@ -50,8 +101,8 @@ struct inode* create_dir( struct inode* parent, const char* name )
         }
     }
 
-    struct inode* new = malloc(sizeof(struct inode))
-    ;
+    struct inode* new = malloc(sizeof(struct inode));
+
     new->id = ++max_id;
     new->name = malloc(strlen(name) + 1);
     strcpy(new->name, name);
@@ -85,14 +136,110 @@ struct inode* find_inode_by_name( struct inode* parent, const char* name )
 
 int delete_file( struct inode* parent, struct inode* node )
 {
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
+    /*
+    The function calls free_block for every block that is referenced by this file. This applies
+also to extents: if the extent has the length of 4, free_block must be called 4 times.
+This removes those blocks from simulate disk.
+This function does not do anything and returns an error if node is not a file, if parent
+is not a directory, or if parent is not the directory that contains node.
+    */
+
+    if (node->is_directory) {
     return -1;
+    }
+
+    if (!parent->is_directory) {
+        return -1;
+    }
+
+    int found_index = -1; //indeksen til barnet i foreldre-listen
+    for (uint32_t i = 0; i < parent->num_entries; i++){
+        struct inode* child = (struct inode*)parent->entries[i];
+        if (child->id == node->id) {
+            found_index = i;
+            break;
+        } 
+    }
+
+    //Fjerner noden fra parent's entries liste. 
+    if (found_index != -1) {
+        for (uint32_t i = 0; i < parent->num_entries - 1; i++) {
+            if (i >= found_index) {
+            parent->entries[i] = parent->entries[i + 1];
+            }
+        }
+        parent->num_entries -= 1;
+        parent->entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
+    } else { //parent er ikke forelder til node
+        return -1;
+    } 
+
+    //Blokknummer er startblokken og ekstent er antall extents
+    for (uint32_t i = 0; i < node->num_entries; i++) {
+        struct Extent* current = (struct Extent*)node->entries[i];
+        for (uint32_t e = 0; e < current->extent; e++) {
+            int try = free_block(current->blockno + e);
+            if (try == -1) {
+                return -1;
+            }
+        }
+    }
+
+    free_inode_data(node);
+
+    return 0;
 }
 
 int delete_dir( struct inode* parent, struct inode* node )
 {
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
-    return -1;
+        /*
+    deletes an empty directory referred to by its inode node from its parent
+directory referred by its inode parent. It releases all memory associated with node.
+This function does not do anything and returns an error if node is not a directory, if
+parent is not a directory, or if parent is not the directory that contains node. It also
+does nothing and returns an error if node is a directory but is not empty, ie. still contains
+other inodes.
+*/
+
+    if (!node->is_directory) {
+        return -1;
+    }
+
+    if (node->num_entries != 0) {
+        return -1;
+    }
+
+    if (!parent->is_directory) {
+        return -1;
+    }
+    
+    int found_index = -1;
+    for (uint32_t i = 0; i < parent->num_entries; i++){
+        struct inode* child = (struct inode*)parent->entries[i];
+        if (child->id == node->id) {
+            found_index = i;
+            break;
+        } 
+    }
+
+    //Fjerner noden fra parent's entries liste. 
+    if (found_index != -1) {
+        for (uint32_t i = 0; i < parent->num_entries - 1; i++) {
+            if (i >= found_index) {
+            parent->entries[i] = parent->entries[i + 1];
+            }
+        }
+        parent->num_entries -= 1;
+        parent->entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
+    } else {
+        //parent er ikke forelder til inoden node
+        return -1;
+    } 
+
+    //Frigjør data fra minnet.
+    free_inode_data(node);
+
+    return 0;
 }
 
 void save_inodes( const char* master_file_table, struct inode* root )
@@ -145,10 +292,11 @@ void save_inodes_DFS(FILE* file, struct inode* node) {
 
         fwrite(&node->num_entries, sizeof(uint32_t), 1, file);
 
-        //For filer er hver entry delt inn i block, extent-par - men siden det lagres
-        //som en rekke integers kan vi bare lagre hele verdien som en lang blokk :)
-        size_t total_entries_size = sizeof(uint32_t) * node->num_entries * 2;
-        fwrite(node->entries, total_entries_size, 1, file);
+        struct Extent* extents = (struct Extent*)node->entries;
+        for (uint32_t i = 0; i < node->num_entries; i++) {
+            fwrite(&extents[i].blockno, sizeof(uint32_t), 1, file);
+            fwrite(&extents[i].extent, sizeof(uint32_t), 1, file);
+        }
     }
     return;
 }
@@ -178,7 +326,7 @@ struct inode* load_inodes( const char* master_file_table )
         current->id = id;
 
         //Oppdaterer global id
-        if current->id > max_id {
+        if (current->id > max_id) {
             max_id = current->id;
         }
 
@@ -213,12 +361,14 @@ struct inode* load_inodes( const char* master_file_table )
             fread(&current->filesize, sizeof(uint32_t), 1, file);
             fread(&current->num_entries, sizeof(uint32_t), 1, file);
 
-            //I en fil ebstår hver entry av par med blockno(32bit) og extent(32bit)
-            size_t total_entries_size = 2 * current->num_entries * sizeof(uint32_t);            
-            current->entries = malloc(total_entries_size);
-
-            //leser inn alle entries som én stor blokk (uintptr_t), med størrelse total_entries_size
-            fread(current->entries, total_entries_size, 1, file);
+            current->entries = malloc(current->num_entries * sizeof(struct Extent));
+            for (uint32_t i = 0; i < current->num_entries; i++) {
+                struct Extent* extent = &((struct Extent*)current->entries)[i];
+                fread(&extent->blockno, sizeof(uint32_t), 1, file);
+                fread(&extent->extent, sizeof(uint32_t), 1, file);
+                
+            //antar vi ikke trenger å allokere blokker siden denne operasjonen allerede er gjort ved opprettelse
+            }
         }
 
         //legger til den nye inoden i arrayet inodes. 
@@ -272,8 +422,26 @@ struct inode* load_inodes( const char* master_file_table )
 
 void fs_shutdown( struct inode* inode )
 {
-    fprintf( stderr, "%s is not implemented\n", __FUNCTION__ );
+    free_inode_data(inode);
     return;
+}
+
+
+void free_inode_data(struct inode* node) {
+    if (node == NULL) {
+        return;
+    }
+
+    //Behandle alle barn først dersom noden er en mappe
+    if (node->is_directory) {
+        for(uint32_t i = 0; i < node->num_entries; i++) {
+            free_inode_data((struct inode*)node->entries[i]);
+        }
+    }
+    //Frigjør noden
+    free(node->name);
+    free(node->entries);
+    free(node);
 }
 
 /* This static variable is used to change the indentation while debug_fs
@@ -295,8 +463,9 @@ void debug_fs( struct inode* node )
 static void debug_fs_tree_walk( struct inode* node, char* table )
 {
     if( node == NULL ) return;
-    for( int i=0; i<indent; i++ )
+    for( int i=0; i<indent; i++ ) {
         printf("  ");
+    }
     if( node->is_directory )
     {
         printf("%s (id %d)\n", node->name, node->id );
@@ -318,9 +487,10 @@ static void debug_fs_tree_walk( struct inode* node, char* table )
          */
         uint32_t* extents = (uint32_t*)node->entries;
 
-        for( int i=0; i<node->num_entries; i++ )
+        //Denne kommer nok ikke til å fungere med min implementasjon av extents.
+        for( int i=0; i < node->num_entries; i++ )
         {
-            for( int j=0; j<extents[2*i+1]; j++ )
+            for( int j=0; j < extents[2*i+1]; j++ )
             {
                 table[ extents[2*i]+j ] = 1;
             }

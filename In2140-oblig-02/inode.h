@@ -117,6 +117,7 @@ void debug_fs( struct inode* node );
  * BEGIN: ADD YOUR OWN FUNCTION DECLARATIONS BELOW HERE
  ******************************************************************************/
 void save_inodes_DFS(FILE* file, struct inode* node);
+void free_inode_data(struct inode* node);
 /*******************************************************************************
  * END: ADD YOUR OWN FUNCTION DECLARATIONS ABOVE HERE
  ******************************************************************************/
