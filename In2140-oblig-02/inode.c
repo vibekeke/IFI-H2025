@@ -6,6 +6,8 @@
 #include <string.h>
 #include <errno.h>
 
+//TODO: husk å null-sjekke alle mallocer, reallocer
+
 static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, men ikke så mye om hvordan
                 //dette skal implementeres. Antar derfor en enkel løsning er tilstrekkelig.
                 //Her: en global teller som kun inkrementerer, for hver fil/dir som blir lagt til.
@@ -89,32 +91,44 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
 
 struct inode* create_dir( struct inode* parent, const char* name )
 {
-    if (!parent->is_directory) {
+    if (parent != NULL && !parent->is_directory) {
         return NULL;
     }
 
     //Sjekker om mappe med samme navn finnes fra før
-    for (uint32_t i = 0; i < parent->num_entries; i++) {
-        struct inode* child = (struct inode*)parent->entries[i];
-        if (strcmp(child->name, name) == 0) {
-            return NULL;
+    if (parent != NULL) {
+        for (uint32_t i = 0; i < parent->num_entries; i++) {
+            struct inode* child = (struct inode*)parent->entries[i];
+            if (strcmp(child->name, name) == 0) {
+                return NULL;
+            }
         }
     }
 
     struct inode* new = malloc(sizeof(struct inode));
+    if (new == NULL) {
+        return NULL;
+    }
 
     new->id = ++max_id;
     new->name = malloc(strlen(name) + 1);
+    if (new->name == NULL) {
+        free(new);
+        return NULL;
+    }
     strcpy(new->name, name);
+
     new->is_directory = 1;
     new->is_readonly = 0;
     new->filesize = 0;
     new->num_entries = 0;
     new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
 
-    parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
-    parent->entries[parent->num_entries] = (uintptr_t)new;
-    parent->num_entries ++;
+    if (parent != NULL) {
+        parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+        parent->entries[parent->num_entries] = (uintptr_t)new;
+        parent->num_entries++;
+    }
 
     return new;
 }
@@ -306,6 +320,10 @@ void save_inodes_DFS(FILE* file, struct inode* node) {
 struct inode* load_inodes( const char* master_file_table )
 {
     FILE *file = fopen(master_file_table, "rb");
+
+    if (file == NULL) {
+        return NULL; // file missing / cannot open
+    }
 
     //lager en dynamisk array av pekere til pekere til inoder
     //Merk at disse først initialiseres med binær-data som entries, 

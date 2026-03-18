@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/vibekeselnes/Documents/IFI-H2025/In2140-oblig-02/build/cmake_install.cmake",
+		"/Users/vibekeselnes/Documents/IFI-H2025/In2140-oblig-02/build/test-cases/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

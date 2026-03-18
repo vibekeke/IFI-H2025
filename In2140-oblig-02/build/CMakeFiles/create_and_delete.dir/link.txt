@@ -1,0 +1,1 @@
+/usr/bin/cc -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/create_and_delete.dir/create_and_delete.c.o CMakeFiles/create_and_delete.dir/block_allocation.c.o CMakeFiles/create_and_delete.dir/inode.c.o -o create_and_delete

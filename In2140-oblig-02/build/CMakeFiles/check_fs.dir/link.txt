@@ -1,0 +1,1 @@
+/usr/bin/cc -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/check_fs.dir/check_fs.c.o CMakeFiles/check_fs.dir/inode.c.o CMakeFiles/check_fs.dir/block_allocation.c.o -o check_fs

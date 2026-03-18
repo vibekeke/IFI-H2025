@@ -1,0 +1,1 @@
+/usr/bin/cc -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/load_fs_3.dir/load_fs_3.c.o CMakeFiles/load_fs_3.dir/block_allocation.c.o CMakeFiles/load_fs_3.dir/inode.c.o -o load_fs_3
