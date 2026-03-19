@@ -6,8 +6,6 @@
 #include <string.h>
 #include <errno.h>
 
-//TODO: husk å null-sjekke alle mallocer, reallocer
-
 static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, men ikke så mye om hvordan
                 //dette skal implementeres. Antar derfor en enkel løsning er tilstrekkelig.
                 //Her: en global teller som kun inkrementerer, for hver fil/dir som blir lagt til.
@@ -15,7 +13,7 @@ static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, m
 struct inode* create_file( struct inode* parent, const char* name, char readonly, int size_in_bytes )
 {
 
-    if (!parent->is_directory) {
+    if (parent == NULL || !parent->is_directory) {
         return NULL;
     }
 
@@ -24,9 +22,18 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
     }
     
     struct inode* new = malloc(sizeof(struct inode));
+    if (new == NULL) {
+        printf("Feil ved allokering av minne i create_file");
+        return NULL;
+    }
 
     new->id = ++max_id;
     new->name = malloc(strlen(name) + 1);
+    if (new->name == NULL) {
+        printf("Feil ved allokering av minne i create_file");
+        free(new);
+        return NULL;
+    }
     strcpy(new->name, name);
     new->is_directory = 0;
     new->is_readonly = readonly;
@@ -54,7 +61,15 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
         while (attempted_blocks > 0) {
             int new_block = allocate_blocks(attempted_blocks);
             if (new_block != -1) {
-                extents = realloc(extents, (index + 1) * sizeof(struct Extent));
+                struct Extent* temp_extents = realloc(extents, (index + 1) * sizeof(struct Extent));
+                if (temp_extents == NULL) {
+                    printf("Feil ved re-allokering av minne i create_file");
+                    free(extents);
+                    free(new->name);
+                    free(new);
+                    return NULL;
+                }
+                extents = temp_extents;
                 extents[index].blockno = new_block;
                 extents[index].extent = attempted_blocks;
                 index++;
@@ -83,6 +98,13 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
 
     //Oppretter foreldre-forhold
     parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+    if (parent->entries == NULL) {
+        printf("Feil ved re-allokering av minne i create_file");
+        free(extents);
+        free(new->name);
+        free(new);
+        return NULL;
+    }
     parent->entries[parent->num_entries] = (uintptr_t)new;
     parent->num_entries++;
 
@@ -125,7 +147,13 @@ struct inode* create_dir( struct inode* parent, const char* name )
     new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
 
     if (parent != NULL) {
-        parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+        struct inode** temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+        if (temp_entries == NULL) {
+            free(new->name);
+            free(new);
+            return NULL;
+        }
+        parent->entries = temp_entries;
         parent->entries[parent->num_entries] = (uintptr_t)new;
         parent->num_entries++;
     }
@@ -135,11 +163,17 @@ struct inode* create_dir( struct inode* parent, const char* name )
 
 struct inode* find_inode_by_name( struct inode* parent, const char* name )
 {
+    if (parent == NULL || name == NULL) {
+        return NULL;
+    }
     if (!parent->is_directory) {
         return NULL;
     }
     for (uint32_t i = 0; i < parent->num_entries; i++) {
         struct inode* child = (struct inode*)parent->entries[i];
+        if (child == NULL) {
+            continue;
+        }
         char* child_name = child->name;
         if (strcmp(child_name, name) == 0) {
             return child;
@@ -150,19 +184,11 @@ struct inode* find_inode_by_name( struct inode* parent, const char* name )
 
 int delete_file( struct inode* parent, struct inode* node )
 {
-    /*
-    The function calls free_block for every block that is referenced by this file. This applies
-also to extents: if the extent has the length of 4, free_block must be called 4 times.
-This removes those blocks from simulate disk.
-This function does not do anything and returns an error if node is not a file, if parent
-is not a directory, or if parent is not the directory that contains node.
-    */
-
-    if (node->is_directory) {
+    if (node == NULL || node->is_directory) {
     return -1;
     }
 
-    if (!parent->is_directory) {
+    if (parent == NULL || !parent->is_directory) {
         return -1;
     }
 
@@ -189,8 +215,9 @@ is not a directory, or if parent is not the directory that contains node.
     } 
 
     //Blokknummer er startblokken og ekstent er antall extents
+    struct Extent* extents = (struct Extent*)node->entries;
     for (uint32_t i = 0; i < node->num_entries; i++) {
-        struct Extent* current = (struct Extent*)node->entries[i];
+        struct Extent* current = &extents[i];
         for (uint32_t e = 0; e < current->extent; e++) {
             int try = free_block(current->blockno + e);
             if (try == -1) {
@@ -206,16 +233,7 @@ is not a directory, or if parent is not the directory that contains node.
 
 int delete_dir( struct inode* parent, struct inode* node )
 {
-        /*
-    deletes an empty directory referred to by its inode node from its parent
-directory referred by its inode parent. It releases all memory associated with node.
-This function does not do anything and returns an error if node is not a directory, if
-parent is not a directory, or if parent is not the directory that contains node. It also
-does nothing and returns an error if node is a directory but is not empty, ie. still contains
-other inodes.
-*/
-
-    if (!node->is_directory) {
+    if (node == NULL || node->is_directory == 0) {
         return -1;
     }
 
@@ -223,7 +241,7 @@ other inodes.
         return -1;
     }
 
-    if (!parent->is_directory) {
+    if (parent == NULL || !parent->is_directory) {
         return -1;
     }
     
@@ -244,7 +262,11 @@ other inodes.
             }
         }
         parent->num_entries -= 1;
-        parent->entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
+        struct inode** temp_entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
+        if (temp_entries == NULL) {
+            return -1;
+        }
+        parent->entries = temp_entries;
     } else {
         //parent er ikke forelder til inoden node
         return -1;
@@ -263,6 +285,10 @@ void save_inodes( const char* master_file_table, struct inode* root )
     }
     
     FILE* file = fopen(master_file_table, "wb");
+    
+    if (file == NULL) {
+        return;
+    }
 
     //Traverserer treet og lagrer til fil ved rekursivt dybde-først søk.
     save_inodes_DFS(file, root);
@@ -293,7 +319,7 @@ void save_inodes_DFS(FILE* file, struct inode* node) {
         //Itererer gjennom barna for å lagre barne-verdier (id)
         for (uint32_t i = 0; i < node->num_entries; i++) {
             struct inode* child = (struct inode*)node->entries[i];  //må caste fra uintpr_t
-            uint64_t child_id64 = child->id;
+            uint64_t child_id64 = (uint64_t)child->id;
             fwrite(&child_id64, sizeof(uint64_t), 1, file);
         }
         //Itererer gjennom barna for å behandle ytterligere noder.
@@ -334,12 +360,22 @@ struct inode* load_inodes( const char* master_file_table )
 
     struct inode* root = NULL;
     //note to self: one uint32_t has the size of 4 bytes.
-    uint32_t id;
 
     //bryter ut av løkken hvis forsøk på å lese ID feiler (slutten på filen)
-    while (fread(&id, sizeof(uint32_t), 1, file) == 1)
+    while (1)
     {
+        uint32_t id;
+        if (fread(&id, sizeof(uint32_t), 1, file) != 1) {
+            break;
+        }
+
         struct inode *current = malloc(sizeof(struct inode));
+        if (current == NULL) {
+            printf("Feil ved allokering av minne i load_inodes");
+            free(inodes);
+            fclose(file);
+            return NULL;
+        }
 
         current->id = id;
 
@@ -354,6 +390,15 @@ struct inode* load_inodes( const char* master_file_table )
         fread(&name_length, sizeof(uint32_t), 1, file);
 
         current->name = malloc(name_length);
+        if (current->name == NULL) {
+            printf("Feil ved allokering av minne i load_inodes");
+            for (size_t i = 0; i < inodes_size; i++) {
+                free_inode_data(inodes[i]);
+            }
+            free(inodes);
+            fclose(file);
+            return NULL;
+        }
         
         fread(current->name, name_length, 1, file);
         fread(&current->is_directory, sizeof(char), 1, file);
@@ -367,6 +412,15 @@ struct inode* load_inodes( const char* master_file_table )
             //Merk: lagrer entries som bits foreløpig - erstattes med pekere til barn
             //i det ferdige filsystemet.
             current->entries = malloc(current->num_entries * sizeof(uintptr_t));
+            if (current->entries == NULL) {
+                printf("Feil ved allokering av minne i load_inodes");
+                for (size_t i = 0; i < inodes_size; i++) {
+                    free_inode_data(inodes[i]);
+                }
+                free(inodes);
+                fclose(file);
+                return NULL;
+            }
             for (uint32_t i = 0; i < current->num_entries; i++) {
                 //ref: på disk er entries serialisert som en sekvens av 64-biters felt, 
                 //som inneholder ID-ene til ulike inodes
@@ -380,6 +434,15 @@ struct inode* load_inodes( const char* master_file_table )
             fread(&current->num_entries, sizeof(uint32_t), 1, file);
 
             current->entries = malloc(current->num_entries * sizeof(struct Extent));
+            if (current->entries == NULL) {
+                printf("Feil ved allokering av minne i load_inodes");
+                for (size_t i = 0; i < inodes_size; i++) {
+                    free_inode_data(inodes[i]);
+                }
+                free(inodes);
+                fclose(file);
+                return NULL;
+            }
             for (uint32_t i = 0; i < current->num_entries; i++) {
                 struct Extent* extent = &((struct Extent*)current->entries)[i];
                 fread(&extent->blockno, sizeof(uint32_t), 1, file);
@@ -397,7 +460,17 @@ struct inode* load_inodes( const char* master_file_table )
             } else {
                 inodes_cap = inodes_cap * 2;
             }
-            inodes = realloc(inodes, inodes_cap * sizeof(struct inode*));
+            struct inode** temp_inodes = realloc(inodes, inodes_cap * sizeof(struct inode*));
+            if (temp_inodes == NULL) {
+                printf("Feil ved re-allokering av minne i load_inodes");
+                for (size_t i = 0; i < inodes_size; i++) {
+                    free_inode_data(inodes[i]);
+                }
+                free(inodes);
+                fclose(file);
+                return NULL;
+            }
+            inodes = temp_inodes;
         }
         inodes[inodes_size++] = current;
     }
@@ -407,6 +480,7 @@ struct inode* load_inodes( const char* master_file_table )
     //identifisere rotnoden, i tilfelle den ikke leses inn først i binærfilen
     for (size_t i = 0; i < inodes_size; i++) {
         struct inode* node = inodes[i];
+        //Antar at rotnoden er den eneste noden som er en directory og har navnet "/". 
         if (node-> is_directory && strcmp(node->name, "/") == 0) {
             root = node;
             break;
@@ -421,7 +495,7 @@ struct inode* load_inodes( const char* master_file_table )
         if (node->is_directory) {
             for (uint32_t j = 0; j < node->num_entries; j++) {
                 struct inode* child = NULL;
-                uint64_t child_id = node->entries[j];
+                uint64_t child_id = (uint64_t)(node->entries[j]);
 
                 //Iterer gjennom alle barna for å finne ID som matcher...
                 for (size_t k = 0; k < inodes_size; k++) {
@@ -503,14 +577,14 @@ static void debug_fs_tree_walk( struct inode* node, char* table )
          * better way of handling extents in the node->entries array, and did
          * it like this because we don't want to give away a good solution here.
          */
-        uint32_t* extents = (uint32_t*)node->entries;
+        struct Extent* extents = (struct Extent*)node->entries; 
+        //Endret debug tree walk til å passe med strukturen til Extent
 
-        //Denne kommer nok ikke til å fungere med min implementasjon av extents.
         for( int i=0; i < node->num_entries; i++ )
         {
-            for( int j=0; j < extents[2*i+1]; j++ )
+            for( int j=0; j < extents[i].extent; j++ )
             {
-                table[ extents[2*i]+j ] = 1;
+                table[ extents[i].blockno + j ] = 1;
             }
         }
     }
