@@ -147,10 +147,12 @@ struct inode* create_dir( struct inode* parent, const char* name )
     }
 
     //Sjekker om mappe med samme navn finnes fra før
-    for (uint32_t i = 0; i < parent->num_entries; i++) {
-        struct inode* child = (struct inode*)parent->entries[i];
-        if (strcmp(child->name, name) == 0) {
-            return NULL;
+    if (parent != NULL) {
+        for (uint32_t i = 0; i < parent->num_entries; i++) {
+            struct inode* child = (struct inode*)parent->entries[i];
+            if (strcmp(child->name, name) == 0) {
+                return NULL;
+            }
         }
     }
 
@@ -173,16 +175,17 @@ struct inode* create_dir( struct inode* parent, const char* name )
     new->num_entries = 0;
     new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
 
-    
-    uintptr_t* temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
-    if (temp_entries == NULL) {
-        free(new->name);
-        free(new);
-        return NULL;
-    }
+    if (parent != NULL) {
+        uintptr_t* temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+        if (temp_entries == NULL) {
+            free(new->name);
+            free(new);
+            return NULL;
+        }
         parent->entries = temp_entries;
         parent->entries[parent->num_entries] = (uintptr_t)new;
         parent->num_entries++;
+    }
 
     return new;
 }
@@ -195,7 +198,7 @@ struct inode* find_inode_by_name( struct inode* parent, const char* name )
     if (!parent->is_directory) {
         return NULL;
     }
-
+    
     //Sjekker om barn er barn av parent.
     for (uint32_t i = 0; i < parent->num_entries; i++) {
         struct inode* child = (struct inode*)parent->entries[i];
