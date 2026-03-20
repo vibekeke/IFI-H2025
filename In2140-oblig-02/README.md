@@ -1,8 +1,9 @@
-## In2140 Oblig-2
+# In2140 Oblig-2
 
 ## Instruksjoner 
 Kjør test-programmer med
 ./test_program mft_file bat_file
+
 
 ## Hvordan lese fra master file table.
 master file table lagret på disk er en binærfil som inneholder inoder av typen dir (directory) og fil (fil). create_fs filene leser disse inn i minnet ved hjelp av block_allocation.c og inode.c (obligens besvarelse) på følgende måte:
@@ -62,6 +63,7 @@ I denne oppgaven har jeg i stor grad fokusert på å forhindre minnelekasjer ved
 
 
 ## Implementeringskrav
-Alle implementeringskrav definert av oppgaven er oppfylt etter beste evne. Jeg finner ingenting ved oppgaven som strider mot oppgaveteksten, og alle funksjoner er implementert. 
+Alle implementeringskrav definert av oppgaven er oppfylt etter beste evne, men med følgende begrensninger: 
 
-Men, som nevnt er jeg litt usikker rundt krav til null-checks og annen feilhåndtering, og er åpen for tilbakemelding!
+- Antar at inputdata er korrekt og utfører derfor ikke full validering i load_inodes()
+- Har fokusert mer på korrekt funksjonalitet enn full feilhåndtering i alle edge cases, da jeg antar det går utenfor skopet til oppgaven.

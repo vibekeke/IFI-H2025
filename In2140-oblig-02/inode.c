@@ -64,6 +64,20 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
                 struct Extent* temp_extents = realloc(extents, (index + 1) * sizeof(struct Extent));
                 if (temp_extents == NULL) {
                     printf("Feil ved re-allokering av minne i create_file");
+                        
+                    //Frigjøre den nåværende blokken
+                    for (uint32_t i = 0; i < attempted_blocks; i++) {
+                        free_block(new_block + i);
+                    }
+                    
+                    //Frigjøre alle blokker som ble allokert tidligere
+                    for (uint32_t i = 0; i < index; i++) {
+                        struct Extent* current = &extents[i];
+                        for (uint32_t e = 0; e < current->extent; e++) {
+                            free_block(current->blockno + e);
+                        }
+                    }
+
                     free(extents);
                     free(new->name);
                     free(new);
@@ -86,6 +100,13 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
         //betyr det at det ikke var nok plass
         //på disk til å lagre filen. Vi må da frigjøre alle ressurser.
         if (success != 1) {
+            //Frigjøre alle blokker som allerede er allokert.
+            for (uint32_t i = 0; i < index; i++) {
+                struct Extent* current = &extents[i];
+                for (uint32_t e = 0; e < current->extent; e++) {
+                    free_block(current->blockno + e);
+                }
+            }
             free(extents);
             free(new->name);
             free(new);
@@ -97,14 +118,22 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
     new->entries = (uintptr_t*)extents;
 
     //Oppretter foreldre-forhold
-    parent->entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
-    if (parent->entries == NULL) {
+    uintptr_t* temp_parent_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+    if (temp_parent_entries == NULL) {
         printf("Feil ved re-allokering av minne i create_file");
+                    //Frigjøre alle blokker som allerede er allokert.
+        for (uint32_t i = 0; i < new->num_entries; i++) {
+            struct Extent* current = &extents[i];
+            for (uint32_t e = 0; e < current->extent; e++) {
+                    free_block(current->blockno + e);
+                }
+        }
         free(extents);
         free(new->name);
         free(new);
         return NULL;
     }
+    parent->entries = temp_parent_entries;
     parent->entries[parent->num_entries] = (uintptr_t)new;
     parent->num_entries++;
 
@@ -118,12 +147,10 @@ struct inode* create_dir( struct inode* parent, const char* name )
     }
 
     //Sjekker om mappe med samme navn finnes fra før
-    if (parent != NULL) {
-        for (uint32_t i = 0; i < parent->num_entries; i++) {
-            struct inode* child = (struct inode*)parent->entries[i];
-            if (strcmp(child->name, name) == 0) {
-                return NULL;
-            }
+    for (uint32_t i = 0; i < parent->num_entries; i++) {
+        struct inode* child = (struct inode*)parent->entries[i];
+        if (strcmp(child->name, name) == 0) {
+            return NULL;
         }
     }
 
@@ -146,17 +173,16 @@ struct inode* create_dir( struct inode* parent, const char* name )
     new->num_entries = 0;
     new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
 
-    if (parent != NULL) {
-        struct inode** temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
-        if (temp_entries == NULL) {
-            free(new->name);
-            free(new);
-            return NULL;
-        }
+    
+    uintptr_t* temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
+    if (temp_entries == NULL) {
+        free(new->name);
+        free(new);
+        return NULL;
+    }
         parent->entries = temp_entries;
         parent->entries[parent->num_entries] = (uintptr_t)new;
         parent->num_entries++;
-    }
 
     return new;
 }
@@ -169,6 +195,8 @@ struct inode* find_inode_by_name( struct inode* parent, const char* name )
     if (!parent->is_directory) {
         return NULL;
     }
+
+    //Sjekker om barn er barn av parent.
     for (uint32_t i = 0; i < parent->num_entries; i++) {
         struct inode* child = (struct inode*)parent->entries[i];
         if (child == NULL) {
@@ -245,6 +273,7 @@ int delete_dir( struct inode* parent, struct inode* node )
         return -1;
     }
     
+    //Finner barnets indeks i foreldre-listen.
     int found_index = -1;
     for (uint32_t i = 0; i < parent->num_entries; i++){
         struct inode* child = (struct inode*)parent->entries[i];
@@ -254,7 +283,7 @@ int delete_dir( struct inode* parent, struct inode* node )
         } 
     }
 
-    //Fjerner noden fra parent's entries liste. 
+    //Fjerner noden fra parent's entries liste, og fjerner eventuelt hull
     if (found_index != -1) {
         for (uint32_t i = 0; i < parent->num_entries - 1; i++) {
             if (i >= found_index) {
@@ -262,7 +291,7 @@ int delete_dir( struct inode* parent, struct inode* node )
             }
         }
         parent->num_entries -= 1;
-        struct inode** temp_entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
+        uintptr_t* temp_entries = realloc(parent->entries, (parent->num_entries) * sizeof(uintptr_t));
         if (temp_entries == NULL) {
             return -1;
         }
