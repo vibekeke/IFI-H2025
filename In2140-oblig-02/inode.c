@@ -12,7 +12,6 @@ static int max_id = 0; //I oppgaven står det at hver node skal ha en unik ID, m
 
 struct inode* create_file( struct inode* parent, const char* name, char readonly, int size_in_bytes )
 {
-
     if (parent == NULL || !parent->is_directory) {
         return NULL;
     }
@@ -44,6 +43,7 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
     //Forsøker å opprette entries
 
     //Trenger å allokere nok blokker til å dekke hele størrelsen / 4096
+    //Pga av integer divisjon å vi legge til litt ekstra for size_in_bytes så det blir nok plass
     int blocks_to_allocate = (size_in_bytes + 4096 - 1) / 4096;
 
     struct Extent* extents = NULL;
@@ -51,7 +51,7 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
     uint32_t index = 0;
 
     while (blocks_to_allocate > 0) {
-        int attempted_blocks = 4;
+        int attempted_blocks = 4;   //Vi vet at man maks kan allokere 4 blokker om gangen
         int success = 0;
         
         if (blocks_to_allocate < 4) {
@@ -61,6 +61,7 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
         while (attempted_blocks > 0) {
             int new_block = allocate_blocks(attempted_blocks);
             if (new_block != -1) {
+                //Ved suksess må vi legge til extent i inoden
                 struct Extent* temp_extents = realloc(extents, (index + 1) * sizeof(struct Extent));
                 if (temp_extents == NULL) {
                     printf("Feil ved re-allokering av minne i create_file");
@@ -142,9 +143,11 @@ struct inode* create_file( struct inode* parent, const char* name, char readonly
 
 struct inode* create_dir( struct inode* parent, const char* name )
 {
+    
     if (parent != NULL && !parent->is_directory) {
         return NULL;
     }
+    //Merk: parent kan være null, hvis noden vi skal opprette er rotnoden
 
     //Sjekker om mappe med samme navn finnes fra før
     if (parent != NULL) {
@@ -156,6 +159,7 @@ struct inode* create_dir( struct inode* parent, const char* name )
         }
     }
 
+    //Oppretter den nye mappen
     struct inode* new = malloc(sizeof(struct inode));
     if (new == NULL) {
         return NULL;
@@ -175,6 +179,7 @@ struct inode* create_dir( struct inode* parent, const char* name )
     new->num_entries = 0;
     new->entries = NULL; //Tom directory, reallokeres hvis noe skal legges til.
 
+    //Oppretter foreldre-forhold
     if (parent != NULL) {
         uintptr_t* temp_entries = realloc(parent->entries, (parent->num_entries + 1) * sizeof(uintptr_t));
         if (temp_entries == NULL) {
@@ -223,7 +228,8 @@ int delete_file( struct inode* parent, struct inode* node )
         return -1;
     }
 
-    int found_index = -1; //indeksen til barnet i foreldre-listen
+    //Finner indeksen til barnet i foreldre-listen
+    int found_index = -1;
     for (uint32_t i = 0; i < parent->num_entries; i++){
         struct inode* child = (struct inode*)parent->entries[i];
         if (child->id == node->id) {
@@ -232,7 +238,8 @@ int delete_file( struct inode* parent, struct inode* node )
         } 
     }
 
-    //Fjerner noden fra parent's entries liste. 
+    //Fjerner noden fra parent's entries liste.
+    //Hvis noden ikke er et barn av parent, returner -1.
     if (found_index != -1) {
         for (uint32_t i = 0; i < parent->num_entries - 1; i++) {
             if (i >= found_index) {
@@ -245,7 +252,8 @@ int delete_file( struct inode* parent, struct inode* node )
         return -1;
     } 
 
-    //Blokknummer er startblokken og ekstent er antall extents
+    //Fjerner allokerte blokker fra disk.
+    //Merk: Blokknummer er startblokken og ekstent er antall extents
     struct Extent* extents = (struct Extent*)node->entries;
     for (uint32_t i = 0; i < node->num_entries; i++) {
         struct Extent* current = &extents[i];
@@ -286,7 +294,7 @@ int delete_dir( struct inode* parent, struct inode* node )
         } 
     }
 
-    //Fjerner noden fra parent's entries liste, og fjerner eventuelt hull
+    //Fjerner noden fra parent's entries liste, og tetter eventuelt hull
     if (found_index != -1) {
         for (uint32_t i = 0; i < parent->num_entries - 1; i++) {
             if (i >= found_index) {

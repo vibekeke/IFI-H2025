@@ -2,8 +2,11 @@
 
 ## Instruksjoner 
 Kjør test-programmer med
-./test_program mft_file bat_file
-
+./check_disk bat_fil
+.check_fs mft_fil
+./create_fs_* mft_fil bat_fil
+./load_fs_* mft_fil bat_fil
+./create_and_delete mft_fil bat_fil
 
 ## Hvordan lese fra master file table.
 master file table lagret på disk er en binærfil som inneholder inoder av typen dir (directory) og fil (fil). create_fs filene leser disse inn i minnet ved hjelp av block_allocation.c og inode.c (obligens besvarelse) på følgende måte:
@@ -56,14 +59,9 @@ Følgende er en mer detaljert gjennomgang av hvordan funksjonen load_inodes() i 
 8. Frigjør det dynamiske arrayet inodes, og returner kun rotnoden. Nå eksisterer alt innholdet i master_file_table-filen i minnet.
 
 
-## Kommentarer om implementasjonen:
+## Implementeringskrav
 Alle testene kjører og valgrind rapporterer 0 lekkasjer da jeg testet programmene.
 
-I denne oppgaven har jeg i stor grad fokusert på å forhindre minnelekasjer ved bruk av malloc og allok samt en del null-checks. Jeg ser at det fortsatt er rom til forbedring når det kommer til validering av input-data, men jeg antar at skopet til oppgaven tillater at ikke alt sjekkes i høyeste detalj og at vi kan stole på input-filene og utgangspunk-scriptsene.
-
-
-## Implementeringskrav
 Alle implementeringskrav definert av oppgaven er oppfylt etter beste evne, men med følgende begrensninger: 
 
-- Antar at inputdata er korrekt og utfører derfor ikke full validering i load_inodes()
-- Har fokusert mer på korrekt funksjonalitet enn full feilhåndtering i alle edge cases, da jeg antar det går utenfor skopet til oppgaven.
+- Antar at inputdata er korrekt og utfører derfor ikke full håndtering for feil i input-filene. Antar at vi kan at vi kan stole på input-filene og test-scriptsene.
