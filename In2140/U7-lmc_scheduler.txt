@@ -1,0 +1,33 @@
+// Process A
+loopa   LDA IDa
+        OTC
+        LDA counta
+        BRA yielda
+reta    ADD ena
+        OUT
+        STA counta
+        BRA loopa
+IDa     DAT 97
+counta  DAT 0
+ena     DAT 1
+// Process B
+loopb   LDA IDb
+        OTC
+        LDA countb
+        BRA yieldb
+retb    ADD enb
+        OUT
+        STA countb
+        BRA loopb
+IDb     DAT 98
+countb  DAT 0
+enb     DAT 1
+// Scheduler
+yielda  STA acc_a
+        LDA acc_b
+        BRA retb
+yieldb  STA acc_b
+        LDA acc_a
+        BRA reta
+acc_a   DAT 
+acc_b   DAT

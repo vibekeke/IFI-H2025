@@ -1,0 +1,9 @@
+U6 - Relatert lesing: Tanenbaum Modern Operating Systems (MOS): Kap. 1, Kap. 10.2, Kap. 11.3
+U7 - Tanenbaum,  Modern Operating Systems , 2.1, 2.2, 2.4, 10.3 and 11.4
+U8- Tanenbaum, Modern Operating Systems, 3, 10.4, 11.4 og 11.5
+U9 - Tanenbaum, Modern Operating Systems, 4, 5.1–5.4, 10.4–6, 11.7–8
+U10 - Tanenbaum, Modern Operating Systems, kap. 2.3.8, side 741 (dårlig dekket i boka
+U11 - Tanenbaum, Computer Networks v5: Kap. 4.1, 4.8, 5.1, 5.6
+
+
+
